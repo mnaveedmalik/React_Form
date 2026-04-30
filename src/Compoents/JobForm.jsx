@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     User, Mail, Phone, MapPin, Briefcase,
-    Users, Code, Upload, Send, Laptop, X
+    Users, Code, Upload, Send, Monitor, X // Laptop ko Monitor se change kiya hai safe side ke liye
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const JobForm = () => {
     const [darkMode, setDarkMode] = useState(true);
 
-    // Initial state setup for easy reset
     const initialFormState = {
         fullname: '', email: '', phone: '', address: '',
         position: 'Software Developer', gender: '', employment: '', skills: [],
@@ -30,8 +29,16 @@ const JobForm = () => {
     };
 
     const handleFileChange = (e) => {
-        if (e.target.files[0]) {
-            setFile(e.target.files[0]);
+        const selectedFile = e.target.files[0];
+        if (selectedFile) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFile({
+                    name: selectedFile.name,
+                    data: reader.result
+                });
+            };
+            reader.readAsDataURL(selectedFile);
         }
     };
 
@@ -39,22 +46,11 @@ const JobForm = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        // 1. Data Processing
-        const finalData = { ...formData, fileName: file ? file.name : 'No file' };
-
-        // 2. Save to Local Storage
+        const finalData = { ...formData, resumeFile: file };
         localStorage.setItem('jobApplicationData', JSON.stringify(finalData));
-        console.log("Data Saved to Local Storage:", finalData);
-
         alert("Application Submitted! Data saved in Local Storage.");
-
         setFormData(initialFormState);
-
-        // 4. File state ko null karna
         setFile(null);
-
-
     };
 
     return (
@@ -63,12 +59,11 @@ const JobForm = () => {
 
                 {darkMode && (
                     <>
-                        <div className="absolute top-[-10%] left-[-10%] w-100 h-100 bg-blue-600/10 rounded-full blur-[120px]"></div>
-                        <div className="absolute bottom-[-10%] right-[-10%] w-100 h-100 bg-purple-600/10 rounded-full blur-[120px]"></div>
+                        <div className="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[120px]"></div>
+                        <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[120px]"></div>
                     </>
                 )}
 
-                {/ Sleek Slider Theme Toggle */}
                 <div className="absolute top-10 right-10 z-50">
                     <div
                         onClick={() => setDarkMode(!darkMode)}
@@ -82,7 +77,6 @@ const JobForm = () => {
                     </div>
                 </div>
 
-                {/* --- Form Card --- */}
                 <motion.div
                     layout
                     className="relative w-full max-w-xl bg-white dark:bg-white/5 backdrop-blur-3xl border border-gray-200 dark:border-white/10 rounded-[2.5rem] p-8 md:p-10 shadow-2xl transition-all"
@@ -95,31 +89,28 @@ const JobForm = () => {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-5">
-
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="relative group">
                                 <User className="absolute left-4 top-3.5 text-gray-400 dark:text-white/30" size={18} />
                                 <input type="text" name="fullname" placeholder="Full Name" required
-                                    value={formData.fullname}
-                                    onChange={handleChange}
+                                    value={formData.fullname} onChange={handleChange}
                                     className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl py-3.5 pl-12 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all" />
                             </div>
                             <div className="relative group">
                                 <Mail className="absolute left-4 top-3.5 text-gray-400 dark:text-white/30" size={18} />
                                 <input type="email" name="email" placeholder="Email" required
-                                    value={formData.email}
-                                    onChange={handleChange}
+                                    value={formData.email} onChange={handleChange}
                                     className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl py-3.5 pl-12 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all" />
                             </div>
                         </div>
 
                         <div className="relative">
-                            <Laptop className="absolute left-4 top-3.5 text-gray-400 dark:text-white/30" size={18} />
+                            <Monitor className="absolute left-4 top-3.5 text-gray-400 dark:text-white/30" size={18} />
                             <select name="position" value={formData.position} onChange={handleChange}
                                 className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-2xl py-3.5 pl-12 text-gray-900 dark:text-white focus:outline-none cursor-pointer appearance-none">
-                                <option className="dark:bg-zinc-900">Software Developer</option>
-                                <option className="dark:bg-zinc-900">Designer</option>
-                                <option className="dark:bg-zinc-900">Manager</option>
+                                <option value="Software Developer">Software Developer</option>
+                                <option value="Designer">Designer</option>
+                                <option value="Manager">Manager</option>
                             </select>
                         </div>
 
@@ -130,9 +121,8 @@ const JobForm = () => {
                                     {['Male', 'Female'].map(g => (
                                         <label key={g} className="flex items-center gap-2 text-sm cursor-pointer">
                                             <input type="radio" name="gender" value={g.toLowerCase()}
-                                                checked={formData.gender === g.toLowerCase()} // Added checked binding
-                                                onChange={handleChange} className="accent-blue-500" />
-                                            {g}
+                                                checked={formData.gender === g.toLowerCase()}
+                                                onChange={handleChange} className="accent-blue-500" /> {g}
                                         </label>
                                     ))}
                                 </div>
@@ -144,8 +134,7 @@ const JobForm = () => {
                                         <label key={e} className="flex items-center gap-2 text-sm cursor-pointer">
                                             <input type="radio" name="employment" value={e.toLowerCase()}
                                                 checked={formData.employment === e.toLowerCase()}
-                                                onChange={handleChange} className="accent-blue-500" />
-                                            {e}
+                                                onChange={handleChange} className="accent-blue-500" /> {e}
                                         </label>
                                     ))}
                                 </div>
@@ -157,9 +146,7 @@ const JobForm = () => {
                             <div className="flex flex-wrap gap-2">
                                 {['React', 'Tailwind', 'Node'].map(s => (
                                     <label key={s} className="flex items-center gap-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 px-4 py-2 rounded-xl cursor-pointer hover:border-blue-500/50 transition-all">
-                                        <input type="checkbox" value={s}
-                                            checked={formData.skills.includes(s)}
-                                            onChange={handleChange} className="accent-blue-500" />
+                                        <input type="checkbox" value={s} checked={formData.skills.includes(s)} onChange={handleChange} className="accent-blue-500" />
                                         <span className="text-gray-600 dark:text-white/60 text-xs">{s}</span>
                                     </label>
                                 ))}
@@ -168,17 +155,17 @@ const JobForm = () => {
 
                         <div className="relative">
                             {!file ? (
-                                <div className="relative group h-24 border-2 border-dashed border-gray-300 dark:border-white/10 rounded-4xl flex flex-col items-center justify-center bg-gray-50 dark:bg-white/5 hover:border-blue-500/40 transition-all cursor-pointer">
+                                <div className="relative group h-24 border-2 border-dashed border-gray-300 dark:border-white/10 rounded-[2rem] flex flex-col items-center justify-center bg-gray-50 dark:bg-white/5 hover:border-blue-500/40 transition-all cursor-pointer">
                                     <Upload className="text-gray-400 dark:text-white/20" />
                                     <span className="text-gray-400 dark:text-white/20 text-[10px] mt-2 uppercase font-bold tracking-widest">Upload Resume</span>
                                     <input type="file" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" />
                                 </div>
                             ) : (
-                                <div className="h-24 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-4xl flex items-center justify-between px-8 transition-all">
+                                <div className="h-24 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-[2rem] flex items-center justify-between px-8 transition-all">
                                     <div className="flex items-center gap-3">
                                         <div className="p-2 bg-blue-500 rounded-lg text-white"><Upload size={16} /></div>
                                         <div>
-                                            <p className="text-blue-600 dark:text-blue-400 text-xs font-bold truncate max-w-4xl">{file.name}</p>
+                                            <p className="text-blue-600 dark:text-blue-400 text-xs font-bold truncate max-w-[150px]">{file.name}</p>
                                             <p className="text-[10px] text-gray-400">File Selected</p>
                                         </div>
                                     </div>
