@@ -180,7 +180,6 @@ const JobForm = () => {
                         >
                             <Send size={18} /> SUBMIT APPLICATION
                         </motion.button>
-                        <h1>hello sir we just practice </h1>
                     </form>
                 </motion.div>
             </div>
